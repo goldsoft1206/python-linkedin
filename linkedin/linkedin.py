@@ -136,7 +136,7 @@ class LinkedIn(object):
         
         self._debug = False
 
-    def request_token(self):
+    def request_token(self, extra_param = None):
         """
         Performs the corresponding API which returns the request token in a query string
         The POST Querydict must include the following:
@@ -146,6 +146,11 @@ class LinkedIn(object):
          * oauth_signature_method
          * oauth_timestamp
          * oauth_version
+
+        Besides above Querydict param, It needs to be included extra params such as 'scope'.
+        For example, to search people, we need to add 'scope=r_network' to request token param.
+        So added extra_param argument for it and it must be dictionary format such as {'scope' : 'r_network'}
+        multiple scope can be passed also and only consideration is it's separated by space. ex: {'scope': 'r_network r_emailaddress'}
         """
         self.clear()
 
@@ -153,7 +158,10 @@ class LinkedIn(object):
         relative_url = "/uas/oauth/requestToken"
         
         query_dict = self._query_dict({"oauth_callback" : self._callback_url})
-        
+
+        if extra_param:
+            query_dict.update(extra_param)
+
         self._calc_signature(self._get_url(relative_url), query_dict, self._request_token_secret, method)
 
         response = self._https_connection(method, relative_url, query_dict)

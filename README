@@ -87,7 +87,10 @@ BASIC USAGE
   # To fetch your connections, simply call 
   connections = api.get_connections() # connections is a list of profiles
 
-
+  # To search people or company, you can use get_search() function
+  peoples = api.get_search({'first-name':'Bill'})
+  # Caution : you need to pass {'scope':'r_network'} to request_token() function to enable search. This part is customized by Philip Stewart.
+  
 LICENSE
 =======
   This package is licensed under the GNU General Public License V2.
