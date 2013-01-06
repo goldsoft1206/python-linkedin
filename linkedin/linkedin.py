@@ -215,7 +215,7 @@ class LinkedIn(object):
         self._access_token = self._get_value_from_raw_qs("oauth_token", response)
         self._access_token_secret = self._get_value_from_raw_qs("oauth_token_secret", response)
 
-    def get_profile(self, member_id = None, url = None, fields=()):
+    def get_profile(self, member_id = None, url = None, fields=(), raw_format = False):
         """
         Gets the public profile for a specific user. It is determined by his/her member id or public url.
         If none of them is given, the information og the application's owner are returned.
@@ -245,9 +245,9 @@ class LinkedIn(object):
             if fields:
                 raw_url = raw_url + fields
                 
-        return self.get_profile_raw(raw_url)
+        return self.get_profile_raw(raw_url, raw_format=raw_format)
     
-    def get_profile_raw(self, raw_url, params=None):
+    def get_profile_raw(self, raw_url, params=None, raw_format = False):
         """
         Use the profile API of linked in. Just append the raw_url string to the v1/people/ url
         and the dictionary params as parameters for the GET request
@@ -256,6 +256,8 @@ class LinkedIn(object):
         self._check_tokens()
         
         response = self._do_normal_query("/v1/people/" + raw_url, params=params)
+        if raw_format is True:
+            return response
         return Profile.create(minidom.parseString(response), self._debug)
 
     def get_connections(self, member_id = None, public_url = None, fields=()):
@@ -293,7 +295,7 @@ class LinkedIn(object):
 
         return result
 
-    def get_search(self, parameters, fields=[]):
+    def get_search(self, parameters, fields=[], raw_format = False):
         """
         Use the People Search API to find LinkedIn profiles using keywords,
         company, name, or other methods. This returns search results,
@@ -333,7 +335,8 @@ class LinkedIn(object):
         """
         
         self._check_tokens()
-        fields = ":(people:(id,first-name,last-name,headline,positions,public-profile-url,picture-url,location:(name)))"
+        if not fields:
+            fields = ":(people:(id,first-name,last-name,headline,positions,public-profile-url,picture-url,location:(name)))"
         response = self._do_normal_query("/v1/people-search" + fields, params=parameters)
 
         error = self._parse_error(response)
@@ -341,6 +344,9 @@ class LinkedIn(object):
             self._error = error
             logging.error("Parsing Error")
             return None
+
+        if raw_format is True:
+            return response
 
         # Parse the response and list out all of the Person elements
         document = minidom.parseString(response)
